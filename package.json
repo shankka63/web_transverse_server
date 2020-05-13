@@ -1,5 +1,5 @@
 {
-  "name": "Cour-LP-Transverse-Server",
+  "name": "server",
   "version": "1.0.0",
   "description": "- Init of the node.js app",
   "main": "index.js",
@@ -7,17 +7,9 @@
     "start": "nodemon ./index.js --exec babel-node -e js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/pipic1/Cour-LP-Transverse-Server.git"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/pipic1/Cour-LP-Transverse-Server/issues"
-  },
-  "homepage": "https://github.com/pipic1/Cour-LP-Transverse-Server#readme",
   "dependencies": {
     "apollo-server": "^2.12.0",
     "babel-cli": "^6.26.0",

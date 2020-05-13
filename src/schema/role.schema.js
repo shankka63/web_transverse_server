@@ -5,71 +5,54 @@ const ignoredFields = ['_id','created_at', '__v', /detail.*_info/];
 
 
 export const typeDef = `
-  type Task {
+  type Role {
     _id: ID!
     name: String
-    description: String
-    duration: String
-    status: Int
+    workers: [Pirate]
   }
-  input TaskInput{
+  input RoleInput{
     name: String
-    description: String
-    duration: String
-    status: Int
+    workers: [pirate]
   }
   extend type Query {
-    taskSchemaAssert: String
-    tasks: [Task]
-    task(_id: ID!): Task
+    roleSchemaAssert: String
+    roles: [Role]
+    role(_id: ID!): Role
   }
   extend type Mutation {
-    createTask(name: String!,description: String!): Boolean
-    createTaskWithInput(input: TaskInput!): Task
-    deleteTask(_id: ID!): Boolean
-    updateTask(_id: ID!,input: TaskInput!): Task
+    createRole(name: String!,description: String!): Boolean
+    createRoleWithInput(input: RoleInput!): Role
+    deleteRole(_id: ID!): Boolean
+    updateRole(_id: ID!,input: RoleInput!): Role
+    addWorker(_id: ID!, input: PirateInput!): Role
   }
 `;
 
 export const resolvers = {
-    Query: {
-        taskSchemaAssert: async () => {
-            return "Task schema";
-        },
-        tasks: async () => {
-            return Task.find();
-            let tasks = [];
-            for (let index = 0; index < 5; index++) {
-                tasks.push(dummy(Task, {
-                    ignore: ignoredFields,
-                    returnDate: true
-                }))
-            }
-            return tasks;
-        },
-        task: async (root, { _id }, context, info) => {
-
-            return Task.findOne({_id});
-            return dummy(Task, {
-                ignore: ignoredFields,
-                returnDate: true
-            })
-        },
+  Query: {
+    roleSchemaAssert: async () => {
+      return "Role schema";
     },
-    Mutation: {
-        createTask: async (root, args, context, info) => {
-            await Task.create(args);
-            return Task.name;
-        },
-        createTaskWithInput: async (root, { input }, context, info) => {
-            //input.password = await bcrypt.hash(input.password, 10);
-            return Task.create(input);
-        },
-        deleteTask: async (root, { _id }, context, info) => {
-            return Task.remove({ _id });
-        },
-        updateTask: async (root, { _id, input }) => {
-            return Task.findByIdAndUpdate(_id, input, { new: true });
-        }
+    roles: async () => {
+      return Role.find();
     },
+    role: async (root, { _id }, context, info) => {      
+      return Role.findOne({_id});
+    },
+  },
+  Mutation: {
+    createRole: async (root, args, context, info) => {
+      await Role.create(args);
+      return Role.name;
+    },
+    createRoleWithInput: async (root, { input }, context, info) => {
+      return Role.create(input);
+    },
+    deleteRole: async (root, { _id }, context, info) => {
+      return Role.remove({ _id });
+    },
+    updateRole: async (root, { _id, input }) => {
+      return Role.findByIdAndUpdate(_id, input, { new: true });
+    }
+  },
 };

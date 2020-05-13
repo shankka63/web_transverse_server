@@ -9,6 +9,7 @@ export const typeDef = `
     _id: ID!
     pseudo: String
     password: String
+    crew: Crew
   }
   input PirateInput{
     pseudo: String

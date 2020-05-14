@@ -10,12 +10,12 @@ export const typeDef = `
         _id: ID!
         name: String
         creator: Pirate
-        roles: [Roles]
+        roles: [Role]
     }
 
     input CrewInput{
         name: String
-        creator: Pirate
+        creator: PirateInput
     }
 
     extend type Query {
@@ -25,11 +25,11 @@ export const typeDef = `
     }
 
     extend type Mutation {
-        createCrew(name: String!, creator: Pirate!): Boolean
-        CreateCrewWithInput(input: CrewInput!): Project
+        createCrew(name: String!, creator: PirateInput!): Boolean
+        CreateCrewWithInput(input: CrewInput!): Crew
         deleteCrew(_id: ID!): Boolean
-        updateCrew(_id: ID!, input: CrewInput!): Project
-        addRolesToCrew(_id: ID!, input: RoleInput!): Project
+        updateCrew(_id: ID!, input: CrewInput!): Crew
+        addRolesToCrew(_id: ID!, input: RoleInput!): Crew
     }
 `;
 

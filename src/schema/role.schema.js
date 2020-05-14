@@ -12,7 +12,6 @@ export const typeDef = `
   }
   input RoleInput{
     name: String
-    workers: [pirate]
   }
   extend type Query {
     roleSchemaAssert: String

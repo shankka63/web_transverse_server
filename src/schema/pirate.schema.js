@@ -5,27 +5,27 @@ const ignoredFields = ['_id','created_at', '__v', /detail.*_info/];
 
 
 export const typeDef = `
-  type Pirate {
-    _id: ID!
-    pseudo: String
-    password: String
-    crew: Crew
-  }
-  input PirateInput{
-    pseudo: String
-    password: String
-  }
-  extend type Query {
-    pirateSchemaAssert: String
-    pirates: [Pirate]
-    pirate(_id: ID!): Pirate
-  }
-  extend type Mutation {
-    createPirate(pseudo: String!): Boolean
-    createPirateWithInput(input: PirateInput!): Pirate
-    deletePirate(_id: ID!): Boolean
-    updatePirate(_id: ID!,input: PirateInput!): Pirate
-  }
+    type Pirate {
+        _id: ID!
+        pseudo: String
+        password: String
+        crew: Crew
+    }
+    input PirateInput{
+        pseudo: String
+        password: String
+    }
+    extend type Query {
+        pirateSchemaAssert: String
+        pirates: [Pirate]
+        pirate(_id: ID!): Pirate
+    }
+    extend type Mutation {
+        createPirate(pseudo: String!): Boolean
+        createPirateWithInput(input: PirateInput!): Pirate
+        deletePirate(_id: ID!): Boolean
+        updatePirate(_id: ID!,input: PirateInput!): Pirate
+    }
 `;
 
 export const resolvers = {

@@ -25,11 +25,11 @@ export const typeDef = `
     }
 
     extend type Mutation {
-        createCrew(name: String!, creator: PirateInput!): Boolean
+        createCrew(name: String!, creator: ID!): Boolean
         CreateCrewWithInput(input: CrewInput!): Crew
         deleteCrew(_id: ID!): Boolean
         updateCrew(_id: ID!, input: CrewInput!): Crew
-        addRolesToCrew(_id: ID!, input: RoleInput!): Crew
+        addRolesToCrew(_id: ID!, input: ID!): Crew
     }
 `;
 
@@ -39,12 +39,20 @@ export const resolvers = {
             return "Crew schema";
         },
         crews: async () => {
-            var test = await Crew.find().populate('roles');
-            console.log(test); 
-            return test;      
+            let crews = [];
+            for (let index = 0; index < 5; index++) {
+                crews.push(dummy(Crew, {
+                    ignore: ignoredFields,
+                    returnDate: true
+                }))
+            }
+            return crews;    
         },
         crew: async () => {
-            return await Crew.findOne({_id}).populate('roles');
+            return dummy(Crew, {
+                ignore: ignoredFields,
+                returnDate: true
+            })
         }
     },
     Mutation: {

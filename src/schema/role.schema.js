@@ -19,11 +19,11 @@ export const typeDef = `
         role(_id: ID!): Role
     }
     extend type Mutation {
-        createRole(name: String!,description: String!): Boolean
+        createRole(name: String!,description: String!): String
         createRoleWithInput(input: RoleInput!): Role
         deleteRole(_id: ID!): Boolean
         updateRole(_id: ID!,input: RoleInput!): Role
-        addWorker(_id: ID!, input: ID!): Role
+        addWorker(_id: ID!, input: ID!): Boolean
     }
 `;
 
@@ -33,20 +33,10 @@ export const resolvers = {
             return "Role schema";
         },
         roles: async () => {
-            let roles = [];
-            for (let index = 0; index < 5; index++) {
-                roles.push(dummy(Role, {
-                    ignore: ignoredFields,
-                    returnDate: true
-                }))
-            }
-            return pirates;
+            return await Role.find().populate('workers');
         },
         role: async (root, { _id }, context, info) => {      
-            return dummy(Role, {
-                ignore: ignoredFields,
-                returnDate: true
-            })
+            return Role.findOne({_id});
         },
     },
     Mutation: {
@@ -62,6 +52,16 @@ export const resolvers = {
         },
         updateRole: async (root, { _id, input }) => {
             return Role.findByIdAndUpdate(_id, input, { new: true });
+        },
+        addWorker: async (root, {_id, input}) => {
+            const role = await Role.findByIdAndUpdate(_id, {
+                $push:{
+                    workers: input
+                }
+            });
+
+            role.save();
+            return true;
         }
     },
 };

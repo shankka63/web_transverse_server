@@ -1,8 +1,10 @@
 import {Crew} from "../models/Crew";
 import {Role} from "../models/Role";
+import {Pirate} from "../models/Pirate";
+import {AuthenticationError} from "apollo-server";
 //Required for dummy data
 const dummy = require('mongoose-dummy');
-const ignoredFields = ['_id','created_at', '__v', /detail.*_info/];
+const ignoredFields = ['_id', 'created_at', '__v', /detail.*_info/];
 
 
 export const typeDef = `
@@ -25,12 +27,12 @@ export const typeDef = `
     }
 
     extend type Mutation {
-        createCrew(name: String!, creator: ID!): Boolean
+        createCrew(name: String!): Boolean
         CreateCrewWithInput(input: CrewInput!): Crew
-        deleteCrew(_id: ID!): Boolean
-        updateCrew(_id: ID!, input: CrewInput!): Crew
-        addRolesToCrew(_id: ID!, input: ID!): Crew
+        leaveCrew: Boolean
+        joinCrew(_id: ID!): Boolean
     }
+    
 `;
 
 export const resolvers = {
@@ -39,47 +41,98 @@ export const resolvers = {
             return "Crew schema";
         },
         crews: async () => {
-            let crews = [];
-            for (let index = 0; index < 5; index++) {
-                crews.push(dummy(Crew, {
-                    ignore: ignoredFields,
-                    returnDate: true
-                }))
-            }
-            return crews;    
+            return Crew.find().populate('creator');
         },
-        crew: async () => {
-            return dummy(Crew, {
-                ignore: ignoredFields,
-                returnDate: true
-            })
+        crew: async (root, {_id}, context, info) => {
+            return Crew.findOne({_id}).populate('creator');
         }
     },
     Mutation: {
-        createCrew: async (root, args, context, info) => {
-            await Crew.create(args);
+        createCrew: async (root, {name}, context, info) => {
+
+            if (!context.user) throw new AuthenticationError("You must be logged");
+
+            if (context.user.crew){
+                throw new Error("You already have a crew");
+            }
+
+            let crew = await Crew.create({name, creator: context.user}).catch(e => console.error(e));
+            await Pirate.findByIdAndUpdate(context.user._id, {
+                crew: crew._id
+            });
+
+            const roleMousse = await Role.create({name: "Moussaillon"});
+            const roleCaptain = await Role.create({name: "Capitaine"});
+            crew = await Crew.findByIdAndUpdate(crew._id, {
+                $push: {
+                    roles: { $each: [roleCaptain, roleMousse] }
+                }
+            });
+            roleCaptain.workers.push(context.user);
+
+            await roleCaptain.save();
+            await crew.save();
             return true;
         },
-        CreateCrewWithInput: async (root, {input}, context, info) => {
-            return Crew.create(input);
+
+        leaveCrew: async (root, _, context, info) => {
+
+            if (!context.user) throw new AuthenticationError("You must be logged");
+
+            if (!context.user.crew)throw new Error("no crew to leave");
+
+            const c = await Crew.findById(context.user.crew);
+
+            if (c.creator.toString() === context.user._id.toString()){
+                // Delete crew
+                console.log("id",c._id);
+                await c.remove();
+            }else{
+
+                await Pirate.findByIdAndUpdate(context.user._id, {
+                    $unset: {
+                        crew: 1
+                    }
+                });
+
+            }
+            return true;
+
         },
-        deleteCrew: async (root, {_id}) => {
-            return Crew.remove({_id});
-        },
-        updateCrew: async (root, {_id, input}) => {
-            return Crew.findByIdAndUpdate(_id, input, {new: true});
-        },
-        addRolesToCrew: async (root, {_id, input}) => {
-            var role = await Role.create(input);
-            var crew = await Crew.findByIdAndUpdate(_id,{
-                $push: {
-                    roles: role
+
+        joinCrew: async (root, {_id}, context, info) => {
+
+            if (!context.user) throw new AuthenticationError("You must be logged");
+            if (context.user.crew)throw new Error("You already have a crew");
+
+            const c = await Crew.findById(_id).populate("roles");
+
+            if (!c) throw new Error("This crew doesn't exist");
+
+            let r = c.roles.filter(it => it.name === "Moussaillon")[0];
+
+            if (!r){
+                r=c.roles[0];
+            }
+
+
+            const user = await Pirate.findByIdAndUpdate(context.user._id, {
+                $set: {
+                    crew: c
                 }
-            })
-            console.log(role);
-            console.log(crew);
-            crew.save();
+            });
+
+            const role = await Role.findByIdAndUpdate(r._id, {
+                $push:{
+                    workers: user
+                }
+            });
+
+            await role.save();
+            await user.save();
+
             return true;
         }
+
     }
-}
+};

@@ -19,6 +19,7 @@ export const typeDef = `
     type Pirate {
         _id: ID!
         pseudo: String
+        score: Int
         password: String
         crew: Crew
     }
@@ -33,11 +34,10 @@ export const typeDef = `
         pirateCrew: Crew
     }
     extend type Mutation {
-        createPirate(pseudo: String!): String
         createPirateWithInput(input: PirateInput!): String
         login(input: PirateInput!): String
         deletePirate(_id: ID!): Boolean
-        updatePirate(_id: ID!,input: PirateInput!): Pirate
+        increaseScore: Pirate
     }
 `;
 
@@ -57,7 +57,7 @@ export const resolvers = {
             if (!context.user) throw new AuthenticationError("You must be logged");
 
 
-            return Pirate.findOne({_id: context.user._id}).populate('crew');
+            return await Pirate.findOne({_id: context.user._id}).populate('crew');
         },
         pirateCrew: async (root, _, context, info) => {
 
@@ -66,7 +66,7 @@ export const resolvers = {
             const p = await Pirate.findOne({_id: context.user._id});
 
             console.log(p.crew);
-            if (p.crew === undefined){
+            if (p.crew === undefined) {
                 return null;
 
             }
@@ -81,10 +81,7 @@ export const resolvers = {
         },
     },
     Mutation: {
-        createPirate: async (root, args, context, info) => {
-            await Pirate.create(args);
-            return Pirate.name;
-        },
+
         createPirateWithInput: async (root, {input}, context, info) => {
 
             const p = await Pirate.findOne({pseudo: input.pseudo});
@@ -95,6 +92,8 @@ export const resolvers = {
 
             const salt = bcrypt.genSaltSync(10);
             input.password = bcrypt.hashSync(input.password, salt);
+
+            input.score=0;
 
             const pirate = await Pirate.create(input);
             return jwt.sign({id: pirate._id, pseudo: pirate.pseudo}, process.env.SECRET);
@@ -114,8 +113,19 @@ export const resolvers = {
         deletePirate: async (root, {_id}, context, info) => {
             return Pirate.remove({_id});
         },
-        updatePirate: async (root, {_id, input}) => {
-            return Pirate.findByIdAndUpdate(_id, input, {new: true});
-        },
+        increaseScore: async (root, _, context, info) => {
+
+            if (!context.user) throw new AuthenticationError("You must be logged");
+
+            const p = await Pirate.findByIdAndUpdate(context.user._id, {
+                $inc: {
+                    score: 10
+                }
+            });
+
+            await p.save();
+
+            return await Pirate.findOne({_id: context.user._id}).populate('crew');
+        }
     }
 };

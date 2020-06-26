@@ -6,6 +6,7 @@ const Schema = mongoose.Schema;
 const pirateSchema = new Schema({
     pseudo: String,
     password: String,
+    score: Number,
     crew: { type: Schema.Types.ObjectId, ref: 'Crew' },
 }, {collection:'Pirate'});
 

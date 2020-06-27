@@ -13,7 +13,6 @@ import {
 
 import {
   typeDef as Role,
-  resolvers as roleResolvers,
 } from './schema/role.schema';
 
 
@@ -34,5 +33,5 @@ const resolvers = {};
 // Do not forget to merge at the end of typeDefs and resolvers
 export const schema = makeExecutableSchema({
   typeDefs: [ Query, Pirate, Crew, Role],
-  resolvers: merge(resolvers, pirateResolvers, crewResolvers, roleResolvers),
+  resolvers: merge(resolvers, pirateResolvers, crewResolvers),
 });

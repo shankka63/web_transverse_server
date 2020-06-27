@@ -28,8 +28,6 @@ export const typeDef = `
         password: String
     }
     extend type Query {
-        pirateSchemaAssert: String
-        pirates: [Pirate]
         bestPirates: [Pirate]
         pirate: Pirate
         pirateCrew: Crew
@@ -44,14 +42,6 @@ export const typeDef = `
 
 export const resolvers = {
     Query: {
-        // Get all pirates
-        pirateSchemaAssert: async () => {
-            return "Hello world, from Pirate schema";
-        },
-        // Get all pirates
-        pirates: async () => {
-            return Pirate.find().populate('crew');
-        },
         bestPirates: async () => {
             return Pirate.find().sort([['score', 'descending']]).limit(10);
         },
@@ -70,7 +60,6 @@ export const resolvers = {
 
             const p = await Pirate.findOne({_id: context.user._id});
 
-            console.log(p.crew);
             if (p.crew === undefined) {
                 return null;
 

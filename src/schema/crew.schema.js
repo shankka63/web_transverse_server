@@ -13,6 +13,7 @@ export const typeDef = `
         name: String
         creator: Pirate
         roles: [Role]
+        score: Int
     }
 
     input CrewInput{
@@ -23,6 +24,7 @@ export const typeDef = `
     extend type Query {
         crewSchemaAssert: String
         crews: [Crew]
+        bestCrews: [Crew]
         crew(_id: ID!) : Crew
     }
 
@@ -45,7 +47,11 @@ export const resolvers = {
         },
         crew: async (root, {_id}, context, info) => {
             return Crew.findOne({_id}).populate('creator');
+        },
+        bestCrews: async () => {
+            return Crew.find().sort([['score', 'descending']]).limit(10);
         }
+
     },
     Mutation: {
         createCrew: async (root, {name}, context, info) => {
@@ -56,7 +62,7 @@ export const resolvers = {
                 throw new Error("You already have a crew");
             }
 
-            let crew = await Crew.create({name, creator: context.user}).catch(e => console.error(e));
+            let crew = await Crew.create({name, creator: context.user, score: 0}).catch(e => console.error(e));
             await Pirate.findByIdAndUpdate(context.user._id, {
                 crew: crew._id
             });

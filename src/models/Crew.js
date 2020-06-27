@@ -8,6 +8,7 @@ const Schema = mongoose.Schema;
 
 const crewSchema = new Schema({
     name: String,
+    score: Number,
     creator: {type: Schema.Types.ObjectId, ref: 'Pirate'},
     roles: [{type: Schema.Types.ObjectId, ref: 'Role'}]
 }, {collection: 'Crew'});

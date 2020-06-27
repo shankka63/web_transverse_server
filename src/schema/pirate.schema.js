@@ -30,6 +30,7 @@ export const typeDef = `
     extend type Query {
         pirateSchemaAssert: String
         pirates: [Pirate]
+        bestPirates: [Pirate]
         pirate: Pirate
         pirateCrew: Crew
     }
@@ -51,6 +52,10 @@ export const resolvers = {
         pirates: async () => {
             return Pirate.find().populate('crew');
         },
+        bestPirates: async () => {
+            return Pirate.find().sort([['score', 'descending']]).limit(10);
+        },
+
         // Get pirate by ID
         pirate: async (root, _, context, info) => {
 
@@ -123,7 +128,12 @@ export const resolvers = {
                 }
             });
 
-            await p.save();
+            const c = await Crew.findByIdAndUpdate(context.user.crew, {
+                $inc: {
+                    score: 10
+                }
+            });
+
 
             return await Pirate.findOne({_id: context.user._id}).populate('crew');
         }
